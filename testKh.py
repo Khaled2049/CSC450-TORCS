@@ -1,7 +1,7 @@
 #-------------- import here -----------------------------------------
 from gym_torcs import TorcsEnv
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import random
 
 import tensorflow as tf
@@ -89,7 +89,8 @@ def train_target(target_weights, weights, tau):
         a.assign(b * tau + a * (1 - tau))
 
 # function for everything else
-def trainTorcs(train_indicator=1): # if 1 , it will train the model,if 0, it will use train model and run the ai driver
+def trainTorcs(train_indicator=1): 
+    # if 1 , it will train the model,if 0, it will use train model and run the ai driver
   # --------------------- declare all variables here-------------------------------------
     BUFFER_SIZE = 100000
     BATCH_SIZE = 64
@@ -115,40 +116,40 @@ def trainTorcs(train_indicator=1): # if 1 , it will train the model,if 0, it wil
 
   # TODO: add noise 
 
-  buff = ReplayBuffer(BUFFER_SIZE)    #Create replay buffer, using Replay buffer class
-  # create model for actor and critic
-  actor_model  = get_actor(hidden_unit1, hidden_unit2)
-  critic_model = get_critic(hidden_unit1, hidden_unit2)
-  
-  #actor_model.summary()
-  #critic_model.summary()
+    buff = ReplayBuffer(BUFFER_SIZE)    #Create replay buffer, using Replay buffer class
+    # create model for actor and critic
+    actor_model  = get_actor(hidden_unit1, hidden_unit2)
+    critic_model = get_critic(hidden_unit1, hidden_unit2)
 
-  # create target actor and critic
-  target_actor = get_actor(hidden_unit1, hidden_unit2)
-  target_critic = get_critic(hidden_unit1, hidden_unit2)
-  
-  # initialize target weights same as acot and critic (default) weights
-  target_actor.set_weights(actor_model.get_weights())
-  target_critic.set_weights(critic_model.get_weights())
-  
-  # set optimizer
-  critic_optimizer = tf.keras.optimizers.Adam(LRC)
-  actor_optimizer = tf.keras.optimizers.Adam(LRA)
+    #actor_model.summary()
+    #critic_model.summary()
 
-  # Generate a Torcs environment
-  env = TorcsEnv(vision=vision, throttle=True,gear_change=False)
+    # create target actor and critic
+    target_actor = get_actor(hidden_unit1, hidden_unit2)
+    target_critic = get_critic(hidden_unit1, hidden_unit2)
 
-  #----------------initially we don't have save weights, but once we have saved weights. we load those weights.---------------------
-  #Now load the weight
-  print("Now we load the weight")
-  try:
-    actor_model.load_weights("actormodel.h5")
-    critic_model.load_weights("criticmodel.h5")
-    target_actor.load_weights("actormodel.h5")
-    target_critic.load_weights("criticmodel.h5")
-    print("Weight load successfully")
-  except:
-    print("Cannot find the weight")
+    # initialize target weights same as acot and critic (default) weights
+    target_actor.set_weights(actor_model.get_weights())
+    target_critic.set_weights(critic_model.get_weights())
+
+    # set optimizer
+    critic_optimizer = tf.keras.optimizers.Adam(LRC)
+    actor_optimizer = tf.keras.optimizers.Adam(LRA)
+
+    # Generate a Torcs environment
+    env = TorcsEnv(vision=vision, throttle=True,gear_change=False)
+
+    #----------------initially we don't have save weights, but once we have saved weights. we load those weights.---------------------
+    #Now load the weight
+    print("Now we load the weight")
+    try:
+        actor_model.load_weights("actormodel.h5")
+        critic_model.load_weights("criticmodel.h5")
+        target_actor.load_weights("actormodel.h5")
+        target_critic.load_weights("criticmodel.h5")
+        print("Weight load successfully")
+    except:
+        print("Cannot find the weight")
 
     #--------------------- from here we will use loops to tain model---------------------------
     # To store reward history of each episode
@@ -164,9 +165,9 @@ def trainTorcs(train_indicator=1): # if 1 , it will train the model,if 0, it wil
             ob = env.reset()
 
         s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
-     
+        
         total_reward = 0.
-      # TODO: follow code in torcs
+        # TODO: follow code in torcs
 
         for j in range(max_steps):
             loss = 0 
@@ -216,69 +217,47 @@ def trainTorcs(train_indicator=1): # if 1 , it will train the model,if 0, it wil
 
         target_q_values = target_values(new_states, target_actor, target_critic)
 
-        # Discounted values
+        # Discounted Qvalues
         for k in range(len(batch)):
-                if dones[k]:
-                    y_t[k] = rewards[k]
-                else:
-                    y_t[k] rewards[k] + GAMMA*target_q_values[k]
+            if dones[k]:
+                y_t[k] = rewards[k]
+            else:
+                y_t[k] = rewards[k] + GAMMA*target_q_values[k]
 
-            # updating target actor and target critic
-            if (train_indicator):
-                loss += update(actor_model, critic_model, states, y_t, actor_optimizer, critic_optimizer)
-                update_target(target_actor.variables, actor_model.variables, TAU)
-                update_target(target_critic.variables, actor_model.variables, TAU)
-            
-            total_reward += r_t
-            s_t = s_t1
-            
-            if np.mod(j,100) == 0: 
-                print("Episode", i, "Step", step, "Action", a_t, "Reward", r_t, "Loss", loss)
-            
-            step += 1
-            if done:
-                break
+        # updating target actor and target critic
+        if (train_indicator):
+            loss += update(actor_model, critic_model, states, y_t, actor_optimizer, critic_optimizer)
+            update_target(target_actor.variables, actor_model.variables, TAU)
+            update_target(target_critic.variables, actor_model.variables, TAU)
+        
+        total_reward += r_t
+        s_t = s_t1
+    
+        if np.mod(j,100) == 0: 
+            print("Episode", i, "Step", step, "Action", a_t, "Reward", r_t, "Loss", loss)
+        
+        step += 1
+        if done:
+            break
 
-        if np.mod(i, 3) == 0:
-            if (train_indicator):
-                print("Now we save model")
-                actor.model.save_weights("actormodel.h5", overwrite=True)
-                with open("actormodel.json", "w") as outfile:
-                    json.dump(actor.model.to_json(), outfile)
+    if np.mod(i, 3) == 0:
+        if (train_indicator):
+            print("Now we save model")
+            actor.model.save_weights("actormodel.h5", overwrite=True)
+            with open("actormodel.json", "w") as outfile:
+                json.dump(actor.model.to_json(), outfile)
 
-                critic.model.save_weights("criticmodel.h5", overwrite=True)
-                with open("criticmodel.json", "w") as outfile:
-                    json.dump(critic.model.to_json(), outfile)
+            critic.model.save_weights("criticmodel.h5", overwrite=True)
+            with open("criticmodel.json", "w") as outfile:
+                json.dump(critic.model.to_json(), outfile)
 
-        print("TOTAL REWARD @ " + str(i) +"-th Episode  : Reward " + str(total_reward))
-        print("Total Step: " + str(step))
-        print("")
+    print("TOTAL REWARD @ " + str(i) +"-th Episode  : Reward " + str(total_reward))
+    print("Total Step: " + str(step))
+    print("")
 
     env.end()  # This is for shutting down TORCS
     print("Finish.")
         
-        # TODO: get state
-        
-        # TODO: generate action
-        # tf.convert_to_tensor(states, dtype=tf.float32)
-        #actions = actor_model(states)
-
-        # TODO: add noise to actions
-
-        
-        
-        # ob, r_t, done, info = env.step(a_t[0])
-
-        # TODO: save it to buffer
-
-
-        #------------------------ get states actions from buffer---------------------------
-
-        #TODO tain model --- call trainmodel
-
-
-        # rest will be same as in DDPG
-
 
 
 
