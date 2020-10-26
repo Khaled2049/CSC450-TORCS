@@ -117,8 +117,8 @@ def trainTorcs(train_indicator=0):
     step = 0
     epsilon = 1
     
-    hidden_unit1 = 1
-    hidden_unit2 = 2
+    hidden_unit1 = HIDDEN1_NODES
+    hidden_unit2 = HIDDEN2_NODES
   #-----------------------Create buffer here-----------------------
 
   # TODO: add noise 
@@ -174,7 +174,8 @@ def trainTorcs(train_indicator=0):
         else:
             ob = env.reset()
 
-        s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
+        #s_t = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY,  ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
+        s_t = np.hstack((ob.speedX, ob.speedY,  ob.speedZ))
         
         total_reward = 0.
         # TODO: follow code in torcs
@@ -204,7 +205,8 @@ def trainTorcs(train_indicator=0):
 
             ob, r_t, done, info = env.step(a_t[0])
 
-            s_t1 = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
+            #s_t1 = np.hstack((ob.angle, ob.track, ob.trackPos, ob.speedX, ob.speedY, ob.speedZ, ob.wheelSpinVel/100.0, ob.rpm))
+            s_t = np.hstack((ob.speedX, ob.speedY,  ob.speedZ))
 
 
             s_t1 = tf.convert_to_tensor(s_t1, dtype = tf.float32)
