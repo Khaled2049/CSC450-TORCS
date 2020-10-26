@@ -93,7 +93,7 @@ def train_target(target_weights, weights, tau):
         a.assign(b * tau + a * (1 - tau))
 
 # function for everything else
-def trainTorcs(train_indicator=1): 
+def trainTorcs(train_indicator=0): 
     # if 1 , it will train the model,if 0, it will use train model and run the ai driver
   # --------------------- declare all variables here-------------------------------------
     BUFFER_SIZE = 100000
@@ -163,7 +163,10 @@ def trainTorcs(train_indicator=1):
     ep_reward_list = []
     # To store average reward history of last few episodes
     avg_reward_list = []
-    for i in range(total_episode):
+
+    print("TORCS Experiment Start.")
+    for i in range(episode_count):
+
         print("Episode : " + str(i) + " Replay Buffer " + str(buff.count()))
 
         if np.mod(i, 3) == 0:
