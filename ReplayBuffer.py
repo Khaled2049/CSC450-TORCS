@@ -1,10 +1,3 @@
-'''
-file:       ReplayBuffer.py
-context:    This code was taken from:
-            https://github.com/yanpanlau/DDPG-Keras-Torcs/blob/master/ReplayBuffer.py
-            
-'''
-
 from collections import deque
 import random
 
