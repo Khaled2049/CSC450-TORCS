@@ -16,6 +16,7 @@ The 'torcs.mp4' file is a video clip capturing a sample racing drive on TORCS af
   (https://github.com/ugo-nama-kun/gym_torcs)
 * Installation of software packages of 'mencoder' (for stiching together sequence of PNG files captured by TORCS to a MPEG4 video) and 'xautomation' on Ubuntu.
 * Setting TORCS' config/raceengine.xml file to enable video frame capturing (Press 'c' to start/stop video frame capturing)
+* Run pip install -r requirements.txt in the terminal
 
 # How to Use?
 * Training : run 'python ddpg.py'
