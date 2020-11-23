@@ -2,6 +2,7 @@
 file:       project.py
 context:    TORCS project, group 1 in CSC450, taught by Dr. Iqbal. The found-
             ation of this code was provided by Mr. Islam.
+            
 project collaborators:  Blake Engelbrecht
                         David Engleman
                         Shannon Groth
@@ -12,7 +13,7 @@ project collaborators:  Blake Engelbrecht
 #-------------- import here -----------------------------------------
 from gym_torcs import TorcsEnv
 import numpy as np
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import random
 
 import tensorflow as tf
@@ -25,8 +26,8 @@ from ReplayBuffer import ReplayBuffer
 from OUActionNoise import OUActionNoise
 import json
 noise = OUActionNoise()
-HIDDEN1_NODES = 128
-HIDDEN2_NODES = 640
+HIDDEN1_NODES = 300
+HIDDEN2_NODES = 600
 output_filename = "Log_Output.txt"
 
 # --------------------- define actor and critic model-------------------
@@ -136,8 +137,8 @@ def trainTorcs(train_indicator=1):
     vision = False
 
     EXPLORE = 100000.
-    episode_count = 2000
-    max_steps = 10 #100000
+    episode_count = 200
+    max_steps = 10000 
     done = False
     step = 0
     epsilon = 1
@@ -359,6 +360,14 @@ def trainTorcs(train_indicator=1):
             step += 1
             if done:
                 break
+            
+        # added this for the graph
+        ep_reward_list.append(total_reward)
+
+        # Mean of last 40 episodes
+        avg_reward = np.mean(ep_reward_list[-40:])
+        print("Episode * {} * Avg Reward is ==> {}".format(j, avg_reward))
+        avg_reward_list.append(avg_reward)
         
         print("Now we save model if total_reward > max_reward:")  
         file_output_str = "\nNow we save model if total_reward > max_reward:"
@@ -404,9 +413,17 @@ def trainTorcs(train_indicator=1):
     file_output_str = "\n----------TO USE THIS WEIGHT SET TRAIN INDICATOR TO 0----------\n"
     log_text_file.write(file_output_str)
     log_text_file.close()
+    
+    # Plotting graph
+    # Episodes versus Avg. Rewards
+    plt.plot(avg_reward_list)
+    plt.xlabel("Episode")
+    plt.ylabel("Avg. Epsiodic Reward")
+    plt.show()
         
 
 
 
 if __name__ == "__main__":
     trainTorcs(1)
+    

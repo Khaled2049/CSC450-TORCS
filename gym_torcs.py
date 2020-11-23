@@ -1,3 +1,5 @@
+import sys
+sys.path.append('/home/rafail/anaconda3/envs/turinglab/gym')
 import gym
 from gym import spaces
 import numpy as np
@@ -21,8 +23,12 @@ class TorcsEnv:
         self.vision = vision
         self.throttle = throttle
         self.gear_change = gear_change
-
+        
         self.initial_run = True
+        
+        # I added this line
+        self.counter = 0
+        self.initialDistance = 0
 
         ##print("launch torcs")
         os.system('pkill torcs')
@@ -148,13 +154,29 @@ class TorcsEnv:
         #    episode_terminate = True
         #    client.R.d['meta'] = True
 
-        if self.terminal_judge_start < self.time_step: # Episode terminates if the progress of agent is small
-            if progress < self.termination_limit_progress:
-                print("No progress")
+        #if self.terminal_judge_start < self.time_step: # Episode terminates if the progress of agent is small
+        #    if progress < self.termination_limit_progress:
+        #        print("No progress")
+        #        episode_terminate = True
+        #        client.R.d['meta'] = True
+        
+        # my reward function
+        
+        if self.counter == 0:
+            self.initialDistance = obs['distRaced']
+        if self.counter == 30:
+            self.counter = 0
+            if obs['distRaced'] - self.initialDistance < 30:
+                reward = -2
+                print('Got stuck!')
                 episode_terminate = True
                 client.R.d['meta'] = True
-
+            else:
+                self.initialDistance = obs['distRaced']
+                
+                
         if np.cos(obs['angle']) < 0: # Episode is terminated if the agent runs backward
+            print("Running backwords so terminate!")
             episode_terminate = True
             client.R.d['meta'] = True
 
@@ -164,14 +186,16 @@ class TorcsEnv:
             client.respond_to_server()
 
         self.time_step += 1
-
+        self.counter += 1
         return self.get_obs(), reward, client.R.d['meta'], {}
 
     def reset(self, relaunch=False):
         #print("Reset")
 
         self.time_step = 0
-
+        self.counter = 0
+        self.initialDistance = 0
+        
         if self.initial_reset is not True:
             self.client.R.d['meta'] = True
             self.client.respond_to_server()
@@ -247,7 +271,8 @@ class TorcsEnv:
                      'rpm',
                      'track', 
                      'trackPos',
-                     'wheelSpinVel']
+                     'wheelSpinVel',
+                     'distRaced']
             Observation = col.namedtuple('Observaion', names)
             return Observation(focus=np.array(raw_obs['focus'], dtype=np.float32)/200.,
                                speedX=np.array(raw_obs['speedX'], dtype=np.float32)/300.0,
@@ -259,7 +284,11 @@ class TorcsEnv:
                                rpm=np.array(raw_obs['rpm'], dtype=np.float32)/10000,
                                track=np.array(raw_obs['track'], dtype=np.float32)/200.,
                                trackPos=np.array(raw_obs['trackPos'], dtype=np.float32)/1.,
-                               wheelSpinVel=np.array(raw_obs['wheelSpinVel'], dtype=np.float32))
+                               wheelSpinVel=np.array(raw_obs['wheelSpinVel'], dtype=np.float32),
+                               distRaced=np.array(raw_obs['distRaced'], dtype=np.float32)
+                               )
+        
+                
         else:
             names = ['focus',
                      'speedX', 'speedY', 'speedZ', 'angle',
