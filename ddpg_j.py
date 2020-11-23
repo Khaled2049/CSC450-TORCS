@@ -1,5 +1,5 @@
 '''
-file:       project.py
+file:       ddpg_j.py
 context:    TORCS project, group 1 in CSC450, taught by Dr. Iqbal. The found-
             ation of this code was provided by Mr. Islam.
             
