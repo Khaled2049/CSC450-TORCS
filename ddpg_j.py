@@ -188,28 +188,6 @@ def trainTorcs(train_indicator=1):
     log_text_file.write(file_output_str)
     file_output_str = ""
     
-    
-    '''a_model_checkpoint = ks.callbacks.ModelCheckpoint(
-        filepath=actor_save_file,
-        save_weights_only=True,
-        monitor="val_acc",
-        mode="max",
-        save_best_only=True)
-    
-    actor_model.compile(optimizer="adam")
-    actor_model.fit(epochs=save_interval, callbacks=[a_model_checkpoint])
-    
-    c_model_checkpoint = ks.callbacks.ModelCheckpoint(
-        filepath=critic_save_file,
-        save_weights_only=True,
-        monitor="val_acc",
-        mode="max",
-        save_best_only=True)
-    
-    critic_model.compile(optimizer="adam")
-    critic_model.fit(epochs=save_interval, callbacks=[c_model_checkpoint])'''
-    
-    
     if FRESH_START==False:
         try:
             actor_model.load_weights(actor_save_file)
