@@ -1,4 +1,0 @@
-Keras==1.1.0
-numpy==1.18.5
-gym==0.17.3
-tensorflow==2.3.1
